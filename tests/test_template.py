@@ -40,6 +40,9 @@ class CopierTemplateTests(unittest.TestCase):
         self.assertIn("project_name: sample-app", answers)
         self.assertIn("project_type: python-api", answers)
         self.assertTrue((target / "mise.toml").is_file())
+        self.assertTrue((target / "mise.lock").is_file())
+        tools = tomllib.loads((target / "mise.toml").read_text())["tools"]
+        self.assertEqual(tools, {"python": "3.14.8", "uv": "0.12.22"})
         self.assertTrue((target / "src/sample_app/main.py").is_file())
         self.assertTrue((target / "tests/test_app.py").is_file())
         self.assertFalse((target / "src/sample_app/ui.py").exists())
@@ -59,6 +62,7 @@ class CopierTemplateTests(unittest.TestCase):
     def test_generic_has_no_python_application(self) -> None:
         target = self.render("generic")
         self.assertTrue((target / "mise.toml").is_file())
+        self.assertFalse((target / "mise.lock").exists())
         self.assertFalse((target / "pyproject.toml").exists())
         self.assertFalse((target / "src").exists())
         self.assertFalse((target / "tests/test_app.py").exists())

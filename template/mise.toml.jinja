@@ -4,8 +4,8 @@ test = "uv run pytest"
 lint = "uv run ruff check ."
 
 [tools]
-python = "3.12"
-uv = "latest"
+python = "3.14.8"
+uv = "0.12.22"
 {% else -%}
 check = "git status --short"
 {% endif %}

@@ -417,25 +417,13 @@ And for your existing `devops-app`, the agent should preserve the working implem
 
 Implementation checklist
 
-0/9 complete
-
-Phase 0 scope confirmed; implementation underway
-
-One working, versioned Copier template repository
-
-Reusable components extracted without breaking devops-app
-
-Conditional modules with enforced dependencies
-
-Copier installed and pinned through global mise
-
-Codex and Pi can discover the project-scaffold skill
-
-Agent can choose configurations and invoke Copier unattended
-
-Generated repositories have working development and validation commands
-
-CI verifies supported configurations and template updates
+- [x] Phase 0 scope confirmed; existing-app follow-up added
+- [x] Reusable component catalog audited without changing `devops-app`
+- [ ] Versioned Copier template with all selected optional modules
+- [x] Copier pinned through global Mise and skill deployed for Codex/Pi
+- [x] Default and representative project configurations render and pass tests
+- [ ] Generated-project CI, module dependency checks, and Copier update tests
+- [ ] Public versioned release, new-project trial, and final skill pin
 
 ## Final recommendation
 

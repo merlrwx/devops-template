@@ -1,0 +1,13 @@
+{
+  "name": "{{ project_name }}",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "postCreateCommand": "mise install --locked && mise exec -- uv sync",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python"]
+    }
+  }
+}

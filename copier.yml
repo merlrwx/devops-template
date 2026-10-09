@@ -6,11 +6,13 @@ _exclude:
   - "{% if project_type == 'generic' %}src{% endif %}"
   - "{% if project_type == 'generic' %}tests{% endif %}"
   - "{% if project_type == 'generic' %}pyproject.toml{% endif %}"
+  - "{% if project_type == 'generic' %}mise.lock{% endif %}"
   - "{% if project_type != 'python-api-with-ui' %}src/{{ project_name | replace('-', '_') }}/ui.py{% endif %}"
   - "{% if not include_containers %}Dockerfile.api{% endif %}"
   - "{% if project_type != 'python-api-with-ui' or not include_containers %}Dockerfile.ui{% endif %}"
   - "{% if not include_containers %}.dockerignore{% endif %}"
   - "{% if not include_compose %}compose.yaml{% endif %}"
+  - "{% if not include_devcontainer %}.devcontainer{% endif %}"
 
 project_name:
   type: str
@@ -37,6 +39,15 @@ include_containers:
   validator: >-
     {% if include_containers and project_type == 'generic' %}
     Container packaging is supported only for Python project types.
+    {% endif %}
+
+include_devcontainer:
+  type: bool
+  help: Include a VS Code development container
+  default: false
+  validator: >-
+    {% if include_devcontainer and project_type == 'generic' %}
+    Dev Containers are supported only for Python project types.
     {% endif %}
 
 include_compose:
