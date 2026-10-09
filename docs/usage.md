@@ -58,10 +58,11 @@ Generation creates repository files only. It does not provision infrastructure,
 create cloud or Git hosting resources, deploy the project, or configure
 production secrets.
 
-The current template does not yet support GitHub Actions/CI, Kubernetes or K3d,
-Flux/GitOps, release automation, security scanning, production promotion, or
-infrastructure provisioning. The reference [component catalog](component-catalog.md)
-describes those ideas but does not mean they are generated or supported.
+GitHub Actions CI is available as an optional feature for Python project types.
+The current template does not yet support Kubernetes or K3d, Flux/GitOps, release
+automation, security scanning, production promotion, or infrastructure
+provisioning. The reference [component catalog](component-catalog.md) describes
+those ideas but does not mean they are generated or supported.
 
 ## Validate the generated project
 

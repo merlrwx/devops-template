@@ -8,4 +8,4 @@ See the [usage guide](docs/usage.md) for prerequisites, safe project generation,
 
 ## Status
 
-This repository is under active development. It supports `python-api`, `python-api-with-ui`, and `generic` project types, with optional container/Compose and DevContainer features. The root GitHub Actions workflow validates template rendering. A versioned template release is not published yet.
+This repository is under active development. It supports `python-api`, `python-api-with-ui`, and `generic` project types, with optional container/Compose, DevContainer, and GitHub Actions CI features. The root GitHub Actions workflow validates template rendering. A versioned template release is not published yet.

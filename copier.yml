@@ -13,6 +13,7 @@ _exclude:
   - "{% if not include_containers %}.dockerignore{% endif %}"
   - "{% if not include_compose %}compose.yaml{% endif %}"
   - "{% if not include_devcontainer %}.devcontainer{% endif %}"
+  - "{% if not include_github_actions %}.github/workflows/ci.yml{% endif %}"
 
 project_name:
   type: str
@@ -48,6 +49,16 @@ include_devcontainer:
   validator: >-
     {% if include_devcontainer and project_type == 'generic' %}
     Dev Containers are supported only for Python project types.
+    {% endif %}
+
+include_github_actions:
+  type: bool
+  help: Include GitHub Actions CI
+  default: false
+  when: "{{ project_type != 'generic' }}"
+  validator: >-
+    {% if include_github_actions and project_type == 'generic' %}
+    GitHub Actions CI is supported only for Python project types.
     {% endif %}
 
 include_compose:

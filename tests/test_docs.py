@@ -23,6 +23,7 @@ class UsageGuideTests(unittest.TestCase):
         self.assertIn("production secrets", guide)
         self.assertIn("git switch -c template-update", guide)
         self.assertIn("copier update", guide)
+        self.assertIn("GitHub Actions CI is available as an optional feature", guide)
         self.assertIn("Kubernetes", guide)
         self.assertIn("Flux/GitOps", guide)
 
