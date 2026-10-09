@@ -11,3 +11,9 @@ A small, language-neutral project foundation.
 ## Development
 
 Use [Mise](https://mise.jdx.dev/) to install the tools and run the project's development tasks.
+
+{% if project_type == 'python-api' -%}
+Run the API with `uv run {{ project_name }}`. It serves `/health` on port 8000.
+{% elif project_type == 'python-api-with-ui' -%}
+Run the API with `uv run {{ project_name }}` and the UI with `uv run streamlit run src/{{ project_name | replace('-', '_') }}/ui.py --server.address 0.0.0.0`.
+{% endif %}

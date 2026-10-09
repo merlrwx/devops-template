@@ -2,8 +2,10 @@
 
 {% if project_type == 'python-api' -%}
 This repository contains a minimal Python application. Run `mise run test` to test it and `mise run lint` to check formatting and lint rules.
+Start the API with `uv run {{ project_name }}`.
 {% elif project_type == 'python-api-with-ui' -%}
 This repository contains a minimal FastAPI service and Streamlit UI. Run `mise run test` to test the service and `mise run lint` to check formatting and lint rules.
+Start the API with `uv run {{ project_name }}` and the UI with `uv run streamlit run src/{{ project_name | replace('-', '_') }}/ui.py --server.address 0.0.0.0`.
 {% else -%}
 This is a language-neutral project foundation. Add project-specific build and test tasks to `mise.toml` when choosing a language or framework.
 {% endif %}

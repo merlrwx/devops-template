@@ -1,6 +1,7 @@
 from pathlib import Path
 import shutil
 import tempfile
+import tomllib
 import unittest
 
 from copier import run_copy
@@ -42,6 +43,13 @@ class CopierTemplateTests(unittest.TestCase):
         self.assertTrue((target / "src/sample_app/main.py").is_file())
         self.assertTrue((target / "tests/test_app.py").is_file())
         self.assertFalse((target / "src/sample_app/ui.py").exists())
+        project = tomllib.loads((target / "pyproject.toml").read_text())
+        self.assertEqual(project["build-system"]["build-backend"], "hatchling.build")
+        self.assertEqual(
+            project["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"],
+            ["src/sample_app"],
+        )
+        self.assertEqual(project["project"]["scripts"]["sample-app"], "sample_app.main:main")
 
     def test_python_api_with_ui_renders_ui(self) -> None:
         target = self.render("python-api-with-ui")
