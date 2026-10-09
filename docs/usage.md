@@ -2,24 +2,22 @@
 
 ## Prerequisites
 
-Install Git and Copier 9 or later. To pin Copier itself when using uv, run it
-through `uvx --from copier==9.0.0 copier ...` (or install that exact Copier
+Install Git and Copier 9.18.2. To pin Copier itself when using uv, run it
+through `uvx --from copier==9.18.2 copier ...` (or install that exact Copier
 version in your environment). Generated Python projects use Mise to select
 Python and uv; install Mise to run their development tasks. Docker is needed
 only if you select container files or Compose.
 
 ## Generate a project
 
-Choose a reviewed, immutable template revision. This repository has no released
-tags yet, so use a reviewed commit ID until a versioned release is available.
-Replace the placeholders with the repository URL, full commit ID, and desired
-destination:
+Use the released template version `v1.0.0`, or another reviewed release.
+Keep the project answers in a temporary file outside the destination:
 
 ```sh
-uvx --from copier==9.0.0 copier copy \
-  --vcs-ref <reviewed-commit-id> \
-  --data-file answers.yml \
-  <template-repository-url> my-project
+uvx --from copier==9.18.2 copier copy \
+  --vcs-ref v1.0.0 \
+  --data-file /tmp/answers.yml \
+  gh:merlrwx/devops-template my-project
 ```
 
 Review the selected revision and `answers.yml` before generating. Avoid an
@@ -35,6 +33,7 @@ project_type: python-api
 include_containers: true
 include_compose: true
 include_devcontainer: true
+include_github_actions: true
 api_port: 8000
 ui_port: 8501
 ```

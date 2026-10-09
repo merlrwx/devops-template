@@ -8,4 +8,4 @@ See the [usage guide](docs/usage.md) for prerequisites, safe project generation,
 
 ## Status
 
-This repository is under active development. It supports `python-api`, `python-api-with-ui`, and `generic` project types, with optional container/Compose, DevContainer, GitHub Actions CI, Kubernetes, and Flux features. The root GitHub Actions workflow validates template rendering. A versioned template release is not published yet.
+The initial `v1.0.0` release is available on [GitHub](https://github.com/merlrwx/devops-template/releases/tag/v1.0.0). It supports `python-api`, `python-api-with-ui`, and `generic` project types, with optional container/Compose, DevContainer, GitHub Actions CI, Kubernetes, and Flux features. The root GitHub Actions workflow validates template rendering and generated-project behavior.
