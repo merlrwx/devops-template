@@ -7,6 +7,10 @@ _exclude:
   - "{% if project_type == 'generic' %}tests{% endif %}"
   - "{% if project_type == 'generic' %}pyproject.toml{% endif %}"
   - "{% if project_type != 'python-api-with-ui' %}src/{{ project_name | replace('-', '_') }}/ui.py{% endif %}"
+  - "{% if not include_containers %}Dockerfile.api{% endif %}"
+  - "{% if project_type != 'python-api-with-ui' or not include_containers %}Dockerfile.ui{% endif %}"
+  - "{% if not include_containers %}.dockerignore{% endif %}"
+  - "{% if not include_compose %}compose.yaml{% endif %}"
 
 project_name:
   type: str
@@ -25,3 +29,34 @@ project_type:
     - python-api-with-ui
     - generic
   default: python-api
+
+include_containers:
+  type: bool
+  help: Include container image definitions
+  default: false
+  validator: >-
+    {% if include_containers and project_type == 'generic' %}
+    Container packaging is supported only for Python project types.
+    {% endif %}
+
+include_compose:
+  type: bool
+  help: Include a local Compose configuration
+  default: false
+  when: "{{ include_containers }}"
+  validator: >-
+    {% if include_compose and not include_containers %}
+    Compose requires container packaging.
+    {% endif %}
+
+api_port:
+  type: int
+  help: API port
+  default: 8000
+  when: "{{ include_containers }}"
+
+ui_port:
+  type: int
+  help: UI port
+  default: 8501
+  when: "{{ include_containers and project_type == 'python-api-with-ui' }}"

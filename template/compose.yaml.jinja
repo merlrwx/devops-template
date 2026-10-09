@@ -1,0 +1,27 @@
+services:
+  api:
+    image: {{ project_name }}-api:local
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "{{ api_port }}:{{ api_port }}"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:{{ api_port }}/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+{% if project_type == 'python-api-with-ui' %}
+  ui:
+    image: {{ project_name }}-ui:local
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    ports:
+      - "{{ ui_port }}:{{ ui_port }}"
+    environment:
+      API_URL: http://api:{{ api_port }}
+    depends_on:
+      api:
+        condition: service_healthy
+{% endif %}
