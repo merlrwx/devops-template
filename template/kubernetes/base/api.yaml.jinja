@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ project_name }}-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ project_name }}-api
+  template:
+    metadata:
+      labels:
+        app: {{ project_name }}-api
+    spec:
+      containers:
+        - name: api
+          image: {{ project_name }}-api:local
+          ports:
+            - name: http
+              containerPort: {{ api_port }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ project_name }}-api
+spec:
+  selector:
+    app: {{ project_name }}-api
+  ports:
+    - name: http
+      port: {{ api_port }}
+      targetPort: http

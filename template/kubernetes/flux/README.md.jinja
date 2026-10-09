@@ -1,0 +1,11 @@
+# Flux reconciliation bundle
+
+These Flux resources are an optional reconciliation bundle for `{{ project_name }}`.
+An existing Flux controller and reconciliation root must include these files
+before Flux will manage the application. The `GitRepository` URL points to this
+project's Git repository, and its `main` branch is reconciled from
+`./kubernetes/base`.
+
+This bundle does not install or bootstrap Flux, configure cluster credentials,
+or apply resources. The application Kustomization uses `prune: false`, so Flux
+will not delete resources removed from the source manifests.

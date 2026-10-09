@@ -14,6 +14,9 @@ _exclude:
   - "{% if not include_compose %}compose.yaml{% endif %}"
   - "{% if not include_devcontainer %}.devcontainer{% endif %}"
   - "{% if not include_github_actions %}.github/workflows/ci.yml{% endif %}"
+  - "{% if not include_kubernetes %}kubernetes/base{% endif %}"
+  - "{% if not include_flux %}kubernetes/flux{% endif %}"
+  - "{% if project_type != 'python-api-with-ui' %}kubernetes/base/ui.yaml{% endif %}"
 
 project_name:
   type: str
@@ -82,3 +85,45 @@ ui_port:
   help: UI port
   default: 8501
   when: "{{ include_containers and project_type == 'python-api-with-ui' }}"
+
+include_kubernetes:
+  type: bool
+  help: Include Kubernetes Kustomize manifests
+  default: false
+  when: "{{ project_type != 'generic' }}"
+  validator: >-
+    {% if include_kubernetes and project_type == 'generic' %}
+    Kubernetes manifests are supported only for Python project types.
+    {% elif include_kubernetes and not include_containers %}
+    Kubernetes requires container packaging.
+    {% endif %}
+
+kubernetes_namespace:
+  type: str
+  help: Kubernetes namespace
+  default: "{{ project_name }}"
+  when: "{{ include_kubernetes }}"
+  validator: >-
+    {% if include_kubernetes and (not (kubernetes_namespace | regex_search('^[a-z0-9](?:[-a-z0-9]*[a-z0-9])?$')) or kubernetes_namespace | length > 63) %}
+    Use a Kubernetes namespace name of at most 63 lowercase letters, numbers, or hyphens, starting and ending with a letter or number.
+    {% endif %}
+
+include_flux:
+  type: bool
+  help: Include an opt-in Flux reconciliation bundle
+  default: false
+  when: "{{ include_kubernetes }}"
+  validator: >-
+    {% if include_flux and not include_kubernetes %}
+    Flux requires Kubernetes manifests.
+    {% endif %}
+
+git_repository_url:
+  type: str
+  help: Git repository URL for Flux
+  default: ""
+  when: "{{ include_flux }}"
+  validator: >-
+    {% if include_flux and not (git_repository_url | regex_search('^(https://[^/]+/.+|ssh://[^/]+/.+|git@[^:]+:.+)$')) %}
+    Flux requires an explicitly provided HTTPS or SSH Git repository URL.
+    {% endif %}

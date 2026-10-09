@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ project_name }}-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ project_name }}-ui
+  template:
+    metadata:
+      labels:
+        app: {{ project_name }}-ui
+    spec:
+      containers:
+        - name: ui
+          image: {{ project_name }}-ui:local
+          ports:
+            - name: http
+              containerPort: {{ ui_port }}
+          env:
+            - name: API_URL
+              value: http://{{ project_name }}-api:{{ api_port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ project_name }}-ui
+spec:
+  selector:
+    app: {{ project_name }}-ui
+  ports:
+    - name: http
+      port: {{ ui_port }}
+      targetPort: http
