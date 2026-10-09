@@ -59,10 +59,13 @@ create cloud or Git hosting resources, deploy the project, or configure
 production secrets.
 
 GitHub Actions CI is available as an optional feature for Python project types.
-The current template does not yet support Kubernetes or K3d, Flux/GitOps, release
-automation, security scanning, production promotion, or infrastructure
-provisioning. The reference [component catalog](component-catalog.md) describes
-those ideas but does not mean they are generated or supported.
+Kustomize manifests are optional for Python projects and require containers. An
+optional Flux bundle requires Kubernetes plus an explicit Git repository URL; it
+assumes an existing Flux controller and reconciliation root. Neither module
+creates clusters, installs controllers, or applies resources. K3d setup, release
+automation, security scanning, production promotion, and infrastructure
+provisioning are not generated. See the [component catalog](component-catalog.md)
+for source patterns and boundaries.
 
 ## Validate the generated project
 
@@ -77,7 +80,10 @@ mise run test
 For `generic`, there are no language-specific test or lint tasks in the current
 template. Review the generated files and use the checks appropriate to the
 project's language. If containers are included, Docker is required to build or
-run them; Compose is available only when selected.
+run them; Compose is available only when selected. For Kubernetes manifests,
+check the rendered resources with `kubectl kustomize kubernetes/base`. Make sure
+images are available to your chosen cluster before applying them. Flux resources
+are only configuration input for an existing Flux reconciliation root.
 
 ## Update an existing project
 

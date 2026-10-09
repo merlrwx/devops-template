@@ -24,8 +24,10 @@ class UsageGuideTests(unittest.TestCase):
         self.assertIn("git switch -c template-update", guide)
         self.assertIn("copier update", guide)
         self.assertIn("GitHub Actions CI is available as an optional feature", guide)
+        self.assertIn("Kustomize manifests are optional", guide)
+        self.assertIn("kubectl kustomize kubernetes/base", guide)
         self.assertIn("Kubernetes", guide)
-        self.assertIn("Flux/GitOps", guide)
+        self.assertIn("Flux bundle", guide)
 
 
 if __name__ == "__main__":

@@ -17,3 +17,29 @@ Run the API with `uv run {{ project_name }}`. It serves `/health` on port 8000.
 {% elif project_type == 'python-api-with-ui' -%}
 Run the API with `uv run {{ project_name }}` and the UI with `uv run streamlit run src/{{ project_name | replace('-', '_') }}/ui.py --server.address 0.0.0.0`.
 {% endif %}
+
+{% if include_containers %}
+## Containers
+
+Build the API image with `docker build -f Dockerfile.api -t {{ project_name }}-api:local .`.
+{% if project_type == 'python-api-with-ui' %}
+Build the UI image with `docker build -f Dockerfile.ui -t {{ project_name }}-ui:local .`.
+{% endif %}
+{% if include_compose %}
+Run the local services with `docker compose up --build`.
+{% endif %}
+{% endif %}
+{% if include_kubernetes %}
+## Kubernetes
+
+Review the rendered resources with `kubectl kustomize kubernetes/base`. Build and
+make the referenced images available to your chosen cluster before applying
+these manifests. The template does not create or configure a cluster.
+{% endif %}
+{% if include_flux %}
+## Flux
+
+The `kubernetes/flux` bundle requires an existing Flux controller and
+reconciliation root to include these files. It does not install Flux or apply
+resources.
+{% endif %}
