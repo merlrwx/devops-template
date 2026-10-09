@@ -425,7 +425,7 @@ Implementation checklist
 - [x] Copier pinned through global Mise and skill deployed for Codex/Pi
 - [x] Default and representative project configurations render and pass tests
 - [x] Root and generated-project CI checks, module dependency tests, and an offline Copier update test
-- [ ] Public versioned release, new-project trial, and final skill pin
+- [x] Public v1.0.0 release setup, generated-project trial, and skill pin
 
 ## Final recommendation
 
