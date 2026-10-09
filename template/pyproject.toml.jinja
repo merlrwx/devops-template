@@ -1,0 +1,25 @@
+[project]
+name = "{{ project_name }}"
+version = "0.1.0"
+description = "{{ project_name }}"
+requires-python = ">=3.12"
+dependencies = [
+{% if project_type == 'python-api-with-ui' -%}
+  "fastapi>=0.115,<1",
+  "streamlit>=1.40,<2",
+  "uvicorn[standard]>=0.32,<1",
+{% else -%}
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.32,<1",
+{% endif -%}
+]
+
+[dependency-groups]
+dev = ["httpx>=0.27,<1", "pytest>=8,<9", "ruff>=0.8,<1"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100

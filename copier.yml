@@ -1,0 +1,27 @@
+_min_copier_version: "9.0.0"
+_subdirectory: template
+_answers_file: .copier-answers.yml
+_templates_suffix: .jinja
+_exclude:
+  - "{% if project_type == 'generic' %}src{% endif %}"
+  - "{% if project_type == 'generic' %}tests{% endif %}"
+  - "{% if project_type == 'generic' %}pyproject.toml{% endif %}"
+  - "{% if project_type != 'python-api-with-ui' %}src/{{ project_name | replace('-', '_') }}/ui.py{% endif %}"
+
+project_name:
+  type: str
+  help: Project name (lowercase letters, numbers, and single hyphens)
+  default: my-project
+  validator: >-
+    {% if not (project_name | regex_search('^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$')) %}
+    Use lowercase letters and numbers, starting with a letter; separate words with single hyphens.
+    {% endif %}
+
+project_type:
+  type: str
+  help: Initial project type
+  choices:
+    - python-api
+    - python-api-with-ui
+    - generic
+  default: python-api

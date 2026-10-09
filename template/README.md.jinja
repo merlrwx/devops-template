@@ -1,0 +1,13 @@
+# {{ project_name }}
+
+{% if project_type == 'python-api' -%}
+A small Python API project foundation.
+{% elif project_type == 'python-api-with-ui' -%}
+A small Python API and Streamlit UI project foundation.
+{% else -%}
+A small, language-neutral project foundation.
+{% endif %}
+
+## Development
+
+Use [Mise](https://mise.jdx.dev/) to install the tools and run the project's development tasks.

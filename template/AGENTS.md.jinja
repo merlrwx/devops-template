@@ -1,0 +1,11 @@
+# Project guidance
+
+{% if project_type == 'python-api' -%}
+This repository contains a minimal Python application. Run `mise run test` to test it and `mise run lint` to check formatting and lint rules.
+{% elif project_type == 'python-api-with-ui' -%}
+This repository contains a minimal FastAPI service and Streamlit UI. Run `mise run test` to test the service and `mise run lint` to check formatting and lint rules.
+{% else -%}
+This is a language-neutral project foundation. Add project-specific build and test tasks to `mise.toml` when choosing a language or framework.
+{% endif %}
+
+Keep generated project instructions specific to the tools and commands configured in this repository.

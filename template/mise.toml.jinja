@@ -1,0 +1,11 @@
+[tasks]
+{% if project_type != 'generic' -%}
+test = "uv run pytest"
+lint = "uv run ruff check ."
+
+[tools]
+python = "3.12"
+uv = "latest"
+{% else -%}
+check = "git status --short"
+{% endif %}
