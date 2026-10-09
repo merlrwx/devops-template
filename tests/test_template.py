@@ -25,6 +25,7 @@ class CopierTemplateTests(unittest.TestCase):
             str(ROOT),
             str(target),
             data=data,
+            vcs_ref="HEAD",
             defaults=True,
             overwrite=True,
             unsafe=True,
