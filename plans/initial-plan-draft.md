@@ -378,8 +378,10 @@ The agent might produce a temporary answers file:
 project_name: knowledge-api
 project_type: python-api
 include_containers: true
+include_github_actions: true
 include_kubernetes: true
 include_flux: true
+git_repository_url: https://github.com/OWNER/knowledge-api.git
 ```
 
 Then execute:
@@ -419,10 +421,10 @@ Implementation checklist
 
 - [x] Phase 0 scope confirmed; existing-app follow-up added
 - [x] Reusable component catalog audited without changing `devops-app`
-- [ ] Versioned Copier template with all selected optional modules
+- [x] Conditional containers, DevContainer, GitHub Actions, Kubernetes, and Flux modules with dependency checks
 - [x] Copier pinned through global Mise and skill deployed for Codex/Pi
 - [x] Default and representative project configurations render and pass tests
-- [ ] Generated-project CI, module dependency checks, and Copier update tests
+- [x] Root and generated-project CI checks, module dependency tests, and an offline Copier update test
 - [ ] Public versioned release, new-project trial, and final skill pin
 
 ## Final recommendation
