@@ -58,6 +58,7 @@ class CopierTemplateTests(unittest.TestCase):
         target = self.render("python-api-with-ui")
         self.assertTrue((target / "src/sample_app/ui.py").is_file())
         self.assertIn("streamlit", (target / "pyproject.toml").read_text())
+        self.assertIn("API_URL", (target / "src/sample_app/ui.py").read_text())
 
     def test_generic_has_no_python_application(self) -> None:
         target = self.render("generic")
