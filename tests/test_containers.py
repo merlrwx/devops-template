@@ -31,6 +31,7 @@ class ContainerTemplateTests(unittest.TestCase):
     def test_api_container_uses_project_name_and_selected_port(self) -> None:
         target = self.render(project_type="python-api", include_containers=True, api_port=9000)
         dockerfile = (target / "Dockerfile.api").read_text()
+        self.assertIn("FROM python:3.14.8-slim", dockerfile)
         self.assertIn("EXPOSE 9000", dockerfile)
         self.assertIn("sample_app.main:app", dockerfile)
         self.assertTrue((target / ".dockerignore").is_file())
