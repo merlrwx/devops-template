@@ -3,6 +3,8 @@ set -euo pipefail
 
 if command -v uv >/dev/null 2>&1; then
     exec uv run --locked python -m unittest discover -s tests -v
+elif command -v mise >/dev/null 2>&1; then
+    exec mise exec --locked -- uv run --locked python -m unittest discover -s tests -v
 elif [[ -x .venv/bin/python ]]; then
     exec .venv/bin/python -m unittest discover -s tests -v
 else
