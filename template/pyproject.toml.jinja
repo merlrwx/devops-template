@@ -1,3 +1,4 @@
+{% if not separate_packages %}
 [project]
 name = "{{ project_name }}"
 version = "0.1.0"
@@ -15,7 +16,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["httpx>=0.27,<1", "pytest>=8,<9", "ruff>=0.8,<1"]
+dev = ["httpx>=0.27,<1", "pytest>=8,<9", "ruff==0.16.9"{% if include_coverage %}, "pytest-cov>=6,<8"{% endif %}{% if include_pre_commit %}, "pre-commit>=4,<5", "commitizen>=4,<5"{% endif %}]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -33,3 +34,46 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/{{ project_name | replace('-', '_') }}"]
+{% else %}
+[project]
+name = "{{ project_name }}"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["services/api", "services/ui"]
+
+[tool.uv.sources]
+{{ project_name }}-api = { workspace = true }
+{{ project_name }}-ui = { workspace = true }
+
+[dependency-groups]
+dev = ["{{ project_name }}-api", "{{ project_name }}-ui", "httpx>=0.27,<1", "pytest>=8,<9", "ruff==0.16.9"{% if include_coverage %}, "pytest-cov>=6,<8"{% endif %}{% if include_pre_commit %}, "pre-commit>=4,<5", "commitizen>=4,<5"{% endif %}]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["services/api/src", "services/ui/src"]
+
+[tool.ruff]
+line-length = 100
+{% endif %}
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["{{ project_name | replace('-', '_') }}", "{{ project_name | replace('-', '_') }}_ui"]
+{% if include_coverage %}
+[tool.coverage.run]
+source = [{% if separate_packages %}"services/api/src", "services/ui/src"{% else %}"src"{% endif %}]
+omit = ["*/ui.py"]
+
+[tool.coverage.report]
+fail_under = {{ coverage_threshold }}
+show_missing = true
+exclude_also = ["if __name__ == .__main__.:", "def main\\(.*"]
+{% endif %}

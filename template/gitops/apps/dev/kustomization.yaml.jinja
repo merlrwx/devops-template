@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: {{ kubernetes_namespace }}-dev
+namePrefix: dev-
+resources:
+  - ../base
+patches:
+  - target:
+      kind: Namespace
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: {{ kubernetes_namespace }}-dev
+{% if project_type == 'python-api-with-ui' %}
+  - target:
+      kind: Deployment
+      name: {{ project_name }}-ui
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/env/0/value
+        value: http://dev-{{ project_name }}-api:{{ api_port }}
+{% endif %}
+images:
+  - name: {{ project_name }}-api
+    newName: ghcr.io/{{ image_registry_namespace }}/{{ project_name }}-api
+    newTag: v0.1.0
+{% if project_type == 'python-api-with-ui' %}
+  - name: {{ project_name }}-ui
+    newName: ghcr.io/{{ image_registry_namespace }}/{{ project_name }}-ui
+    newTag: v0.1.0
+{% endif %}

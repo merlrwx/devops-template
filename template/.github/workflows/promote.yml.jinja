@@ -1,0 +1,55 @@
+name: Promote GitOps images
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+    secrets:
+      GITOPS_TOKEN:
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: gitops-promotion
+  cancel-in-progress: false
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: source
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: {{ gitops_repository }}
+          token: {% raw %}${{ secrets.GITOPS_TOKEN }}{% endraw %}
+          path: gitops
+          ref: main
+      - name: Update dev images
+        env:
+          TAG: {% raw %}${{ inputs.tag }}{% endraw %}
+        run: python source/scripts/promote.py gitops/apps/dev/kustomization.yaml "$TAG"
+      - name: Commit dev update
+        working-directory: gitops
+        run: |
+          if git diff --quiet -- apps/dev/kustomization.yaml; then exit 0; fi
+          git config user.name 'GitOps Bot'
+          git config user.email 'gitops-bot@users.noreply.github.com'
+          git add apps/dev/kustomization.yaml
+          git commit -m 'chore(images): update dev release'
+          git push origin HEAD:main
+      - name: Update production images
+        env:
+          TAG: {% raw %}${{ inputs.tag }}{% endraw %}
+        run: python source/scripts/promote.py gitops/apps/prod/kustomization.yaml "$TAG"
+      - uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+        with:
+          token: {% raw %}${{ secrets.GITOPS_TOKEN }}{% endraw %}
+          path: gitops
+          base: main
+          branch: gitops/promote-release
+          delete-branch: true
+          commit-message: 'chore(images): promote production release'
+          title: 'Promote production images'
+          body: 'Review the image tags and development validation before merging.'

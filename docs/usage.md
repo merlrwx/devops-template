@@ -10,12 +10,12 @@ only if you select container files or Compose.
 
 ## Generate a project
 
-Use the released template version `v1.0.0`, or another reviewed release.
+Use the released template version `v1.1.0`, or another reviewed release.
 Keep the project answers in a temporary file outside the destination:
 
 ```sh
 uvx --from copier==9.18.2 copier copy \
-  --vcs-ref v1.0.0 \
+  --vcs-ref v1.1.0 \
   --data-file /tmp/answers.yml \
   gh:merlrwx/devops-template my-project
 ```
@@ -61,9 +61,7 @@ GitHub Actions CI is available as an optional feature for Python project types.
 Kustomize manifests are optional for Python projects and require containers. An
 optional Flux bundle requires Kubernetes plus an explicit Git repository URL; it
 assumes an existing Flux controller and reconciliation root. Neither module
-creates clusters, installs controllers, or applies resources. K3d setup, release
-automation, security scanning, production promotion, and infrastructure
-provisioning are not generated. See the [component catalog](component-catalog.md)
+creates clusters, installs controllers, or applies resources. K3d development, release automation, security scanning, coverage and production promotion are additional opt-in modules. Infrastructure provisioning is not generated. See [feature selection and delivery](features.md) for their dependencies and setup. See the [component catalog](component-catalog.md)
 for source patterns and boundaries.
 
 ## Validate the generated project

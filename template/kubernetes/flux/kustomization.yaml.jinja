@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./kubernetes/base
+  path: {% if include_gitops_promotion %}./apps/dev{% else %}./kubernetes/base{% endif %}
   prune: false
   sourceRef:
     kind: GitRepository

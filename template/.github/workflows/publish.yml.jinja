@@ -1,0 +1,58 @@
+name: Publish images
+on:
+  push:
+    tags: ['v*', 'api-v*', 'ui-v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to publish
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        component: [api{% if project_type == 'python-api-with-ui' %}, ui{% endif %}]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: {% raw %}${{ inputs.tag || github.ref_name }}{% endraw %}
+      - uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: {% raw %}${{ github.actor }}{% endraw %}
+          password: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
+      - name: Check publishing owner and release tag
+        env:
+          OWNER: {% raw %}${{ github.repository_owner }}{% endraw %}
+          TAG: {% raw %}${{ inputs.tag || github.ref_name }}{% endraw %}
+        run: |
+          test -f uv.lock
+          test "${OWNER,,}" = "{{ image_registry_namespace }}"
+          [[ "$TAG" =~ ^(api-|ui-)?v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]]
+      - name: Build and publish
+        if: startsWith(inputs.tag || github.ref_name, 'v') || startsWith(inputs.tag || github.ref_name, format('{0}-v', matrix.component))
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: Dockerfile.{% raw %}${{ matrix.component }}{% endraw %}
+          push: true
+          tags: ghcr.io/{{ image_registry_namespace }}/{{ project_name }}-{% raw %}${{ matrix.component }}{% endraw %}:{% raw %}${{ inputs.tag || github.ref_name }}{% endraw %}
+          cache-from: type=gha,scope={% raw %}${{ matrix.component }}{% endraw %}
+          cache-to: type=gha,mode=max,scope={% raw %}${{ matrix.component }}{% endraw %}
+{% if include_gitops_promotion %}
+  promote:
+    needs: publish
+    uses: ./.github/workflows/promote.yml
+    with:
+      tag: {% raw %}${{ inputs.tag || github.ref_name }}{% endraw %}
+    secrets:
+      GITOPS_TOKEN: {% raw %}${{ secrets.GITOPS_TOKEN }}{% endraw %}
+{% endif %}

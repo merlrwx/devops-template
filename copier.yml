@@ -18,13 +18,34 @@ _exclude:
   - "{% if not include_flux %}kubernetes/flux{% endif %}"
   - "{% if project_type != 'python-api-with-ui' %}kubernetes/base/ui.yaml{% endif %}"
 
+  - "{% if project_type != 'python-api-with-ui' %}src/{{ project_name | replace('-', '_') }}/ui_utils.py{% endif %}"
+  - "{% if not separate_packages %}services{% endif %}"
+  - "{% if separate_packages %}/src{% endif %}"
+  - "{% if not include_pre_commit %}.pre-commit-config.yaml{% endif %}"
+  - "{% if not include_release_automation %}release-please-config.json{% endif %}"
+  - "{% if not include_release_automation %}.release-please-manifest.json{% endif %}"
+  - "{% if not include_release_automation %}.github/workflows/release.yml{% endif %}"
+  - "{% if not include_image_publishing %}.github/workflows/publish.yml{% endif %}"
+  - "{% if not include_gitops_promotion %}.github/workflows/promote.yml{% endif %}"
+  - "{% if not include_gitops_promotion %}gitops{% endif %}"
+  - "{% if not include_k3d %}scripts/cluster.py{% endif %}"
+  - "{% if not include_k3d %}scripts/e2e.py{% endif %}"
+  - "{% if not include_k3d or not include_github_actions %}.github/workflows/e2e.yml{% endif %}"
+  - "{% if not include_kubernetes %}kubernetes/overlays{% endif %}"
+  - "{% if not include_persistence %}kubernetes/base/storage.yaml{% endif %}"
+  - "{% if project_type != 'python-api-with-ui' %}tests/test_ui.py{% endif %}"
+  - "{% if not include_gitops_promotion %}scripts/promote.py{% endif %}"
+
+  - "{% if project_type != 'python-api-with-ui' %}gitops/apps/base/ui.yaml{% endif %}"
+  - "{% if not include_persistence %}gitops/apps/base/storage.yaml{% endif %}"
+
 project_name:
   type: str
   help: Project name (lowercase letters, numbers, and single hyphens)
   default: my-project
   validator: >-
-    {% if not (project_name | regex_search('^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$')) %}
-    Use lowercase letters and numbers, starting with a letter; separate words with single hyphens.
+    {% if not (project_name | regex_search('^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$')) or project_name | length > 50 %}
+    Use lowercase letters and numbers, starting with a letter; separate words with single hyphens (at most 50 characters).
     {% endif %}
 
 project_type:
@@ -78,12 +99,14 @@ api_port:
   type: int
   help: API port
   default: 8000
+  validator: "{% if api_port < 1 or api_port > 65535 %}API port must be 1–65535.{% endif %}"
   when: "{{ include_containers }}"
 
 ui_port:
   type: int
   help: UI port
   default: 8501
+  validator: "{% if ui_port < 1 or ui_port > 65535 %}UI port must be 1–65535.{% endif %}"
   when: "{{ include_containers and project_type == 'python-api-with-ui' }}"
 
 include_kubernetes:
@@ -104,8 +127,8 @@ kubernetes_namespace:
   default: "{{ project_name }}"
   when: "{{ include_kubernetes }}"
   validator: >-
-    {% if include_kubernetes and (not (kubernetes_namespace | regex_search('^[a-z0-9](?:[-a-z0-9]*[a-z0-9])?$')) or kubernetes_namespace | length > 63) %}
-    Use a Kubernetes namespace name of at most 63 lowercase letters, numbers, or hyphens, starting and ending with a letter or number.
+    {% if include_kubernetes and (not (kubernetes_namespace | regex_search('^[a-z0-9](?:[-a-z0-9]*[a-z0-9])?$')) or kubernetes_namespace | length > 58) %}
+    Use a Kubernetes namespace name of at most 58 lowercase letters, numbers, or hyphens, starting and ending with a letter or number.
     {% endif %}
 
 include_flux:
@@ -126,4 +149,114 @@ git_repository_url:
   validator: >-
     {% if include_flux and not (git_repository_url | regex_search('^(https://[^/]+/.+|ssh://[^/]+/.+|git@[^:]+:.+)$')) %}
     Flux requires an explicitly provided HTTPS or SSH Git repository URL.
+    {% endif %}
+
+separate_packages:
+  type: bool
+  help: Use separate API/UI packages in a uv workspace (existing layouts stay unchanged by default)
+  default: false
+  validator: >-
+    {% if separate_packages and project_type != 'python-api-with-ui' %}
+    Separate packages require python-api-with-ui.
+    {% endif %}
+
+include_coverage:
+  type: bool
+  help: Enforce test coverage and produce reports
+  default: false
+  validator: >-
+    {% if include_coverage and project_type == 'generic' %}
+    Coverage requires a Python project.
+    {% endif %}
+
+coverage_threshold:
+  type: int
+  help: Minimum percentage for measured application code
+  default: 80
+  validator: >-
+    {% if coverage_threshold < 0 or coverage_threshold > 100 %}
+    Coverage threshold must be between 0 and 100.
+    {% endif %}
+
+include_pre_commit:
+  type: bool
+  help: Include Ruff formatting/lint hooks and Conventional Commit validation
+  default: false
+  validator: >-
+    {% if include_pre_commit and project_type == 'generic' %}
+    Pre-commit tooling requires a Python project.
+    {% endif %}
+
+include_persistence:
+  type: bool
+  help: Include a SQLite key/value starter and persistent container storage
+  default: false
+  validator: >-
+    {% if include_persistence and project_type == 'generic' %}
+    Persistence requires a Python project.
+    {% endif %}
+
+include_security_scanning:
+  type: bool
+  help: Fail CI on dependency, code, secret and selected container vulnerability findings
+  default: false
+  validator: >-
+    {% if include_security_scanning and not include_github_actions %}
+    Security scanning requires GitHub Actions.
+    {% endif %}
+
+include_release_automation:
+  type: bool
+  help: Include Release Please component releases
+  default: false
+  validator: >-
+    {% if include_release_automation and not include_github_actions %}
+    Release automation requires GitHub Actions.
+    {% endif %}
+
+include_image_publishing:
+  type: bool
+  help: Publish tagged API/UI images to GHCR
+  default: false
+  validator: >-
+    {% if include_image_publishing and (not include_containers or not include_github_actions) %}
+    Image publishing requires containers and GitHub Actions.
+    {% endif %}
+
+image_registry_namespace:
+  type: str
+  help: Lowercase GHCR owner or organisation (must match the adopting repository owner)
+  default: ""
+  validator: >-
+    {% if include_image_publishing and not (image_registry_namespace | regex_search('^[a-z0-9][a-z0-9-]*$')) %}
+    Image publishing requires an explicit lowercase image registry namespace.
+    {% endif %}
+
+include_gitops_promotion:
+  type: bool
+  help: Generate cross-repository dev updates and production promotion PRs
+  default: false
+  validator: >-
+    {% if include_gitops_promotion and (not include_image_publishing or not include_flux) %}
+    GitOps promotion requires image publishing and Flux.
+    {% endif %}
+
+gitops_repository:
+  type: str
+  help: Writable GitOps repository as owner/name; review generated manifests before copying
+  default: ""
+  validator: >-
+    {% if include_gitops_promotion and not (gitops_repository | regex_search('^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$')) %}
+    GitOps promotion requires an explicit owner/name repository.
+    {% elif include_gitops_promotion and git_repository_url not in ['https://github.com/' + gitops_repository + '.git', 'https://github.com/' + gitops_repository, 'git@github.com:' + gitops_repository + '.git'] %}
+    Flux source URL must identify the selected GitOps repository.
+    {% endif %}
+
+include_k3d:
+  type: bool
+  help: Include guarded local k3d development and disposable E2E tests
+  default: false
+  validator: >-
+    {% if include_k3d and not include_kubernetes %}
+    K3d requires Kubernetes.
     {% endif %}

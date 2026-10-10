@@ -1,35 +1,107 @@
 name: CI
-
 on:
   pull_request:
   push:
     branches: [main]
-
 permissions:
   contents: read
-
 jobs:
   ci:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
       - name: Install uv and Python
         uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
           version: 0.12.22
           python-version: 3.14.8
-
       - name: Create lockfile when missing
         run: if [ ! -f uv.lock ]; then uv lock; fi
-
       - name: Install project dependencies
         run: uv sync --locked
-
       - name: Lint
         run: uv run ruff check .
-
+      - name: Formatting
+        run: uv run ruff format --check .
       - name: Test
-        run: uv run pytest
+        run: uv run pytest{% if include_coverage %} --cov --cov-report=term-missing --cov-report=xml --cov-fail-under={{ coverage_threshold }}{% endif %}
+{% if include_pre_commit %}
+      - name: Pre-commit
+        run: uv run pre-commit run --all-files
+{% endif %}
+{% if include_coverage %}
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: coverage
+          path: coverage.xml
+          retention-days: 7
+{% endif %}
+{% if include_security_scanning %}
+      - name: Dependency audit
+        run: |
+          uv export --locked --no-dev --no-emit-workspace{% if separate_packages %} --all-packages{% endif %} > /tmp/requirements.txt
+          uvx --from pip-audit==2.9.0 pip-audit -r /tmp/requirements.txt --disable-pip
+      - name: Python security analysis
+        run: uvx --from bandit==1.9.4 bandit -r {% if separate_packages %}services{% else %}src{% endif %} -ll
+      - name: Secret scan (full checked-out history)
+        run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo --redact --exit-code 1
+{% endif %}
+{% if include_containers %}
+      - name: Build API image
+        run: docker build -f Dockerfile.api -t {{ project_name }}-api:ci .
+{% if project_type == 'python-api-with-ui' %}
+      - name: Build UI image
+        run: docker build -f Dockerfile.ui -t {{ project_name }}-ui:ci .
+{% endif %}
+{% if include_security_scanning %}
+      - name: Scan API image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: {{ project_name }}-api:ci
+          version: v0.74.0
+          exit-code: '1'
+          ignore-unfixed: false
+          severity: HIGH,CRITICAL
+{% if project_type == 'python-api-with-ui' %}
+      - name: Scan UI image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: {{ project_name }}-ui:ci
+          version: v0.74.0
+          exit-code: '1'
+          ignore-unfixed: false
+          severity: HIGH,CRITICAL
+{% endif %}
+{% endif %}
+{% endif %}
+{% if include_coverage %}
+  coverage-comment:
+    needs: ci
+    if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && needs.ci.result != 'skipped'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        id: download
+        continue-on-error: true
+        with:
+          name: coverage
+      - if: steps.download.outcome == 'success'
+        uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 # v1.3.0
+        with:
+          filename: coverage.xml
+          format: markdown
+          output: both
+      - if: steps.download.outcome == 'success'
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          header: test-coverage
+          path: code-coverage-results.md
+{% endif %}

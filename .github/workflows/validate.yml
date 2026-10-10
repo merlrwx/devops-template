@@ -17,6 +17,9 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+        with:
+          fetch-depth: 0
+
       - name: Install uv and Python
         uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
@@ -28,3 +31,24 @@ jobs:
 
       - name: Verify template
         run: ./scripts/verify
+
+  runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: 0.12.22
+          python-version: 3.14.8
+      - uses: azure/setup-kubectl@v4
+      - name: Install k3d with release checksum
+        run: |
+          curl -fsSLO https://github.com/k3d-io/k3d/releases/download/v5.9.0/k3d-linux-amd64
+          curl -fsSLO https://github.com/k3d-io/k3d/releases/download/v5.9.0/checksums.txt
+          grep ' _dist/k3d-linux-amd64$' checksums.txt | sed 's|_dist/||' | sha256sum --check
+          sudo install k3d-linux-amd64 /usr/local/bin/k3d
+      - name: Verify generated containers and Kubernetes E2E
+        run: scripts/verify-runtime

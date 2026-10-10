@@ -13,9 +13,9 @@ A small, language-neutral project foundation.
 Use [Mise](https://mise.jdx.dev/) to install the tools and run the project's development tasks.
 
 {% if project_type == 'python-api' -%}
-Run the API with `uv run {{ project_name }}`. It serves `/health` on port 8000.
+Run the API with `uv run {{ project_name }}`. It serves `/health` on port {{ api_port }}.
 {% elif project_type == 'python-api-with-ui' -%}
-Run the API with `uv run {{ project_name }}` and the UI with `uv run streamlit run src/{{ project_name | replace('-', '_') }}/ui.py --server.address 0.0.0.0`.
+Run the API with `uv run {{ project_name }}` and the UI with `uv run streamlit run {% if separate_packages %}services/ui/src/{{ project_name | replace('-', '_') }}_ui{% else %}src/{{ project_name | replace('-', '_') }}{% endif %}/ui.py --server.address 0.0.0.0 --server.port {{ ui_port }}`.
 {% endif %}
 
 {% if include_containers %}
@@ -43,3 +43,36 @@ The `kubernetes/flux` bundle requires an existing Flux controller and
 reconciliation root to include these files. It does not install Flux or apply
 resources.
 {% endif %}
+
+{% if project_type != 'generic' %}
+## Quality and selected modules
+
+Initialize Git, run `mise install --locked` and `mise run setup`, and commit the resolved `uv.lock`.
+Run `mise run lint`, `mise run format-check` and `mise run test`.
+{% if include_coverage %}
+Tests enforce {{ coverage_threshold }}% coverage and produce XML/HTML reports. UI launch code is excluded; add browser tests for UI interactions.
+{% endif %}
+{% if include_pre_commit %}
+Setup installs lint/format and commit-msg hooks once this directory is a Git repository.
+{% endif %}
+{% if include_persistence %}
+SQLite uses `DATABASE_PATH` (default `data/app.sqlite3`); `/items` and `/items/{key}` are a key/value starter. Compose data and Kubernetes PVCs are generated when those modules are selected. Review backups and storage before production.
+{% endif %}
+{% if include_security_scanning %}
+CI enforces dependency/code/secret and selected container scans. Vulnerabilities fail the workflow; configure narrow reviewed exceptions where appropriate.
+{% endif %}
+{% if include_release_automation %}
+Configure `RELEASE_TOKEN` for Release Please; review and merge release PRs to publish tags.
+{% endif %}
+{% if include_image_publishing %}
+Release tags publish images to `ghcr.io/{{ image_registry_namespace }}/{{ project_name }}-api`{% if project_type == 'python-api-with-ui' %} and `{{ project_name }}-ui`{% endif %}. Configure GHCR permissions before tagging.
+{% endif %}
+{% if include_gitops_promotion %}
+Review/copy `gitops/` contents into `{{ gitops_repository }}`, configure `GITOPS_TOKEN`, and add the Flux objects through your existing reconciliation root. Dev changes push to GitOps `main`; production changes require a PR merge.
+{% endif %}
+{% if include_k3d %}
+Install Docker, kubectl and k3d 5.9.0. Use `mise run k8s-setup-local`, `k8s-sync-local`, `k8s-status`, `k8s-logs`, and `e2e-test`. Teardown requires `python scripts/cluster.py down --yes` and deletes cluster data. E2E creates and removes only its unique disposable cluster.
+{% endif %}
+
+{% endif %}
+Full module documentation: https://github.com/merlrwx/devops-template/blob/v1.1.0/docs/features.md

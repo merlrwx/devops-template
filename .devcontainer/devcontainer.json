@@ -1,0 +1,13 @@
+{
+  "name": "devops-template",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2.17.0": {
+      "moby": false
+    }
+  },
+  "postCreateCommand": "mise trust && mise install --locked && mise exec -- uv sync --locked",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  }
+}

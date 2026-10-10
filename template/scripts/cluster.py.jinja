@@ -1,0 +1,92 @@
+"""Operate only on this project's named k3d cluster; never use implicit context."""
+
+import argparse
+import json
+import subprocess
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+PROJECT = "{{ project_name }}"
+NAMESPACE = "{{ kubernetes_namespace }}-dev"
+
+
+def run(*args: str, check: bool = True) -> subprocess.CompletedProcess:
+    print("+", " ".join(args), flush=True)
+    result = subprocess.run(args, cwd=ROOT, check=False, capture_output=True, text=True)
+    if check and result.returncode:
+        raise RuntimeError(result.stdout + result.stderr)
+    return result
+
+
+def kube(cluster: str, *args: str, check: bool = True) -> subprocess.CompletedProcess:
+    return run("kubectl", "--context", f"k3d-{cluster}", *args, check=check)
+
+
+def require_project_cluster(cluster: str) -> None:
+    if not cluster.startswith(PROJECT + "-"):
+        raise ValueError("Refusing a cluster outside this project's name prefix")
+
+
+def sync(cluster: str) -> None:
+    require_project_cluster(cluster)
+    kube(cluster, "get", "namespace", "kube-system")
+    if kube(cluster, "get", "namespace", "flux-system", check=False).returncode == 0:
+        raise ValueError("Refusing local sync on a Flux-managed cluster")
+    for role in ["api"{% if project_type == 'python-api-with-ui' %}, "ui"{% endif %}]:
+        image = f"{PROJECT}-{role}:local"
+        run("docker", "build", "-f", f"Dockerfile.{role}", "-t", image, ".")
+        run("k3d", "image", "import", image, "--cluster", cluster)
+    kube(cluster, "apply", "-k", "kubernetes/overlays/dev")
+    for role in ["api"{% if project_type == 'python-api-with-ui' %}, "ui"{% endif %}]:
+        deployment = f"deployment/dev-{PROJECT}-{role}"
+        kube(cluster, "-n", NAMESPACE, "rollout", "restart", deployment)
+        kube(cluster, "-n", NAMESPACE, "rollout", "status", deployment, "--timeout=180s")
+
+
+def operate(action: str, cluster: str, yes: bool = False, component: str = "api") -> None:
+    require_project_cluster(cluster)
+    if action == "down":
+        if not yes:
+            raise ValueError("Teardown deletes cluster data; explicitly pass --yes")
+        run("k3d", "cluster", "delete", cluster)
+    elif action == "setup":
+        clusters = json.loads(run("k3d", "cluster", "list", "-o", "json").stdout)
+        if cluster not in [entry["name"] for entry in clusters]:
+            run(
+                "k3d",
+                "cluster",
+                "create",
+                cluster,
+                "--agents",
+                "1",
+                "--image",
+                "rancher/k3s:v1.35.8-k3s1",
+                "--kubeconfig-switch-context=false",
+                "--wait",
+            )
+        sync(cluster)
+    elif action == "sync":
+        sync(cluster)
+    elif action == "status":
+        print(kube(cluster, "-n", NAMESPACE, "get", "deployments,pods,services,pvc").stdout)
+    elif action == "logs":
+        print(
+            kube(
+                cluster,
+                "-n",
+                NAMESPACE,
+                "logs",
+                f"deployment/dev-{PROJECT}-{component}",
+                "--tail=100",
+            ).stdout
+        )
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("action", choices=["setup", "sync", "status", "logs", "down"])
+    parser.add_argument("--cluster", default=PROJECT + "-local")
+    parser.add_argument("--component", choices=["api"{% if project_type == 'python-api-with-ui' %}, "ui"{% endif %}], default="api")
+    parser.add_argument("--yes", action="store_true")
+    args = parser.parse_args()
+    operate(args.action, args.cluster, args.yes, args.component)

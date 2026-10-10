@@ -1,0 +1,24 @@
+FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+
+RUN tool_arch=$(dpkg --print-architecture) \
+    && curl -fsSL "https://dl.k8s.io/release/v1.35.8/bin/linux/$tool_arch/kubectl" -o /tmp/kubectl \
+    && curl -fsSL "https://dl.k8s.io/release/v1.35.8/bin/linux/$tool_arch/kubectl.sha256" -o /tmp/kubectl.sha256 \
+    && cd /tmp && echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check \
+    && install kubectl /usr/local/bin/kubectl && rm kubectl kubectl.sha256
+
+
+RUN tool_arch=$(dpkg --print-architecture) \
+    && curl -fsSL "https://github.com/k3d-io/k3d/releases/download/v5.9.0/k3d-linux-$tool_arch" -o /tmp/k3d \
+    && curl -fsSL "https://github.com/k3d-io/k3d/releases/download/v5.9.0/checksums.txt" -o /tmp/checksums.txt \
+    && cd /tmp && grep " _dist/k3d-linux-$tool_arch$" checksums.txt | sed "s|_dist/k3d-linux-$tool_arch|k3d|" | sha256sum --check \
+    && install k3d /usr/local/bin/k3d && rm k3d checksums.txt
+
+USER vscode
+ENV PATH="/home/vscode/.local/bin:/home/vscode/.local/share/mise/shims:${PATH}"
+RUN curl -fsSL https://mise.run | MISE_VERSION=v2026.10.5 sh

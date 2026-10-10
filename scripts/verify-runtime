@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+render_dir=$(mktemp -d /tmp/devops-template-runtime.XXXXXX)
+trap 'rm -rf "$render_dir"' EXIT
+uv run --locked python - "$render_dir" <<'PY'
+import sys
+from copier import run_copy
+run_copy('.', sys.argv[1], vcs_ref='HEAD', defaults=True, quiet=True, data={
+    'project_name': 'template-check', 'project_type': 'python-api-with-ui',
+    'separate_packages': True, 'include_containers': True, 'include_compose': True,
+    'include_devcontainer': True, 'include_github_actions': True,
+    'include_kubernetes': True, 'include_k3d': True, 'include_persistence': True,
+    'include_coverage': True, 'include_pre_commit': True,
+})
+PY
+cd "$render_dir"
+uv sync
+uv run ruff check .
+uv run ruff format --check .
+uv run pytest --cov --cov-report=xml
+docker compose config --quiet
+python scripts/e2e.py

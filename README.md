@@ -8,4 +8,6 @@ See the [usage guide](docs/usage.md) for prerequisites, safe project generation,
 
 ## Status
 
-The initial `v1.0.0` release is available on [GitHub](https://github.com/merlrwx/devops-template/releases/tag/v1.0.0). It supports `python-api`, `python-api-with-ui`, and `generic` project types, with optional container/Compose, DevContainer, GitHub Actions CI, Kubernetes, and Flux features. The root GitHub Actions workflow validates template rendering and generated-project behavior.
+The initial `v1.1.0` release is available on [GitHub](https://github.com/merlrwx/devops-template/releases/tag/v1.1.0). It supports `python-api`, `python-api-with-ui`, and `generic` project types, with optional container/Compose, DevContainer, GitHub Actions CI, Kubernetes, and Flux features. The root GitHub Actions workflow validates template rendering and generated-project behavior.
+
+See [feature selection and delivery](docs/features.md) for the full profile, security gates, releases, GitOps promotion, persistence and Kubernetes E2E.
