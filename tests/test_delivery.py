@@ -254,6 +254,7 @@ class DeliveryMigrationTests(unittest.TestCase):
             run_update(
                 str(dest),
                 vcs_ref="HEAD",
+                overwrite=True,
                 defaults=True,
                 quiet=True,
                 data={"include_coverage": True, "include_pre_commit": True},
