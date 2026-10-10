@@ -25,6 +25,7 @@ class CopierTemplateTests(unittest.TestCase):
             str(ROOT),
             str(target),
             data=data,
+            vcs_ref="HEAD",
             defaults=True,
             overwrite=True,
             unsafe=True,
@@ -37,6 +38,8 @@ class CopierTemplateTests(unittest.TestCase):
         self.assertTrue((target / "AGENTS.md").is_file())
         self.assertTrue((target / ".copier-answers.yml").is_file())
         answers = (target / ".copier-answers.yml").read_text()
+        self.assertRegex(answers, r"(?m)^_src_path: .+$")
+        self.assertRegex(answers, r"(?m)^_commit: .+$")
         self.assertIn("project_name: sample-app", answers)
         self.assertIn("project_type: python-api", answers)
         self.assertTrue((target / "mise.toml").is_file())
