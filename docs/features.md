@@ -69,6 +69,8 @@ Security CI fails on dependency audit findings, medium/high-severity Bandit resu
 
 Source and dependency scanning are separate from GitHub-managed code/secret scanning settings. The template creates repository workflows and does not configure account-level security services.
 
+A newly generated image can fail Trivy because the selected base image has published vulnerabilities, including ones without a fix. Trivy can also report dependency metadata from the copied lockfile beyond the packages installed in that service image. Inspect the reported target and installed packages before assessing exposure. The template deliberately keeps these findings visible; enabling scanning is a gate, not a guarantee that a fresh image has no findings.
+
 ## Release, publication and promotion configuration
 
 Configure secrets in the adopting repository; no secret values are generated:
