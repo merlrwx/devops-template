@@ -1,13 +1,16 @@
 FROM python:3.14.8-slim
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app/src
+COPY --from=ghcr.io/astral-sh/uv:0.12.22 /uv /usr/local/bin/uv
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 COPY pyproject.toml ./
-COPY src ./src
-RUN pip install --no-cache-dir 'uv>=0.7,<1' \
-    && uv sync --no-dev --no-install-project
-
+{% if separate_packages %}COPY services ./services
+{% else %}COPY src ./src
+{% endif %}
+# Use a committed lock when available; initial scaffolds resolve once on first build.
+COPY . /app
+RUN if [ ! -f uv.lock ]; then uv lock; fi \
+    && uv sync --locked --no-dev {% if separate_packages %}--package {{ project_name }}-api{% endif %}
+RUN useradd --uid 10001 --create-home app && mkdir -p /app/data && chown app:app /app/data
+USER app
 EXPOSE {{ api_port }}
 CMD ["uv", "run", "--no-sync", "uvicorn", "{{ project_name | replace('-', '_') }}.main:app", "--host", "0.0.0.0", "--port", "{{ api_port }}"]

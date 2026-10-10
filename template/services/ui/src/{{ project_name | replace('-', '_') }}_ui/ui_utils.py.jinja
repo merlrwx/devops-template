@@ -1,0 +1,7 @@
+from urllib.parse import urlsplit
+
+
+def health_url(api_url: str) -> str:
+    if urlsplit(api_url).scheme not in {"http", "https"}:
+        raise ValueError("API_URL must use HTTP or HTTPS")
+    return f"{api_url.rstrip('/')}/health"

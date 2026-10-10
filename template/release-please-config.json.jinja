@@ -1,0 +1,22 @@
+{
+  "separate-pull-requests": true,
+  "packages": {
+{% if separate_packages %}
+    "services/api": {
+      "release-type": "python", "package-name": "{{ project_name }}-api",
+      "component": "api", "include-component-in-tag": true,
+      "extra-files": [{"type": "toml", "path": "/uv.lock", "jsonpath": "$.package[?(@.name.value=='{{ project_name }}-api')].version"}]
+    },
+    "services/ui": {
+      "release-type": "python", "package-name": "{{ project_name }}-ui",
+      "component": "ui", "include-component-in-tag": true,
+      "extra-files": [{"type": "toml", "path": "/uv.lock", "jsonpath": "$.package[?(@.name.value=='{{ project_name }}-ui')].version"}]
+    }
+{% else %}
+    ".": {
+      "release-type": "python", "package-name": "{{ project_name }}", "include-component-in-tag": false,
+      "extra-files": [{"type": "toml", "path": "uv.lock", "jsonpath": "$.package[?(@.name.value=='{{ project_name }}')].version"}]
+    }
+{% endif %}
+  }
+}

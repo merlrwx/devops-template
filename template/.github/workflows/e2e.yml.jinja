@@ -1,0 +1,22 @@
+name: Kubernetes E2E
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: azure/setup-kubectl@v4
+      - name: Install k3d with release checksum
+        run: |
+          curl -fsSLO https://github.com/k3d-io/k3d/releases/download/v5.9.0/k3d-linux-amd64
+          curl -fsSLO https://github.com/k3d-io/k3d/releases/download/v5.9.0/checksums.txt
+          grep ' _dist/k3d-linux-amd64$' checksums.txt | sed 's|_dist/||' | sha256sum --check
+          sudo install k3d-linux-amd64 /usr/local/bin/k3d
+      - name: Exercise disposable cluster
+        run: python scripts/e2e.py

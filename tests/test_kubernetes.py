@@ -17,6 +17,7 @@ class KubernetesTemplateTests(unittest.TestCase):
             str(ROOT),
             str(target),
             data={"project_name": "sample-app", **answers},
+            vcs_ref="HEAD",
             defaults=True,
             overwrite=True,
             unsafe=True,

@@ -1,11 +1,29 @@
 [tasks]
-{% if project_type != 'generic' -%}
-test = "uv run pytest"
+{% if project_type != 'generic' %}
+test = "uv run pytest{% if include_coverage %} --cov --cov-report=term-missing --cov-report=xml --cov-report=html{% endif %}"
 lint = "uv run ruff check ."
-
+format-check = "uv run ruff format --check ."
+format = "uv run ruff format ."
+setup = "uv sync{% if include_pre_commit %} && uv run pre-commit install && uv run pre-commit install --hook-type commit-msg{% endif %}"
+{% if include_pre_commit %}hooks = "uv run pre-commit run --all-files"
+{% endif %}
 [tools]
 python = "3.14.8"
 uv = "0.12.22"
-{% else -%}
+{% else %}
 check = "git status --short"
+{% endif %}
+{% if include_k3d %}
+[tasks.k8s-setup-local]
+run = "python scripts/cluster.py setup"
+[tasks.k8s-sync-local]
+run = "python scripts/cluster.py sync"
+[tasks.k8s-status]
+run = "python scripts/cluster.py status"
+[tasks.k8s-logs]
+run = "python scripts/cluster.py logs"
+[tasks.k8s-down-local]
+run = "python scripts/cluster.py down"
+[tasks.e2e-test]
+run = "python scripts/e2e.py"
 {% endif %}

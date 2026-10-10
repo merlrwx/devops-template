@@ -17,7 +17,7 @@ class UsageGuideTests(unittest.TestCase):
         self.assertIn("copier==9.18.2", guide)
         self.assertIn("include_devcontainer: true", guide)
         self.assertIn("mise install --locked", guide)
-        self.assertIn("--vcs-ref v1.0.0", guide)
+        self.assertIn("--vcs-ref v1.1.0", guide)
         self.assertIn("--data-file /tmp/answers.yml", guide)
         self.assertIn("does not provision infrastructure", guide)
         self.assertIn("production secrets", guide)

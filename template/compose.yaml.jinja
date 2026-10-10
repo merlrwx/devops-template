@@ -6,6 +6,12 @@ services:
       dockerfile: Dockerfile.api
     ports:
       - "{{ api_port }}:{{ api_port }}"
+{% if include_persistence %}
+    environment:
+      DATABASE_PATH: /app/data/app.sqlite3
+    volumes:
+      - api-data:/app/data
+{% endif %}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:{{ api_port }}/health')"]
       interval: 5s
@@ -24,4 +30,8 @@ services:
     depends_on:
       api:
         condition: service_healthy
+{% endif %}
+{% if include_persistence %}
+volumes:
+  api-data:
 {% endif %}

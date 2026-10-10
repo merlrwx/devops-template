@@ -1,0 +1,13 @@
+import pytest
+
+from {{ project_name | replace('-', '_') }}{% if separate_packages %}_ui{% endif %}.ui_utils import health_url
+
+
+def test_api_url_normalization():
+    assert health_url("http://api:8000/") == "http://api:8000/health"
+    assert health_url("http://api:8000") == "http://api:8000/health"
+
+
+def test_unsupported_url_scheme():
+    with pytest.raises(ValueError, match="HTTP"):
+        health_url("file:///etc/passwd")

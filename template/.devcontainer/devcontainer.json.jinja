@@ -1,13 +1,10 @@
 {
   "name": "{{ project_name }}",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".."
-  },
-  "postCreateCommand": "mise install --locked && mise exec -- uv sync",
-  "customizations": {
-    "vscode": {
-      "extensions": ["ms-python.python"]
-    }
-  }
+  "build": {"dockerfile": "Dockerfile", "context": ".."},
+  "postCreateCommand": "mise trust && mise install --locked && mise exec -- uv sync",
+  "forwardPorts": [{{ api_port }}{% if project_type == 'python-api-with-ui' %}, {{ ui_port }}{% endif %}],
+{% if include_containers %}
+  "features": {"ghcr.io/devcontainers/features/docker-in-docker:2.17.0": {"moby": false}},
+{% endif %}
+  "customizations": {"vscode": {"extensions": ["ms-python.python"]}}
 }

@@ -17,6 +17,7 @@ class DevcontainerTemplateTests(unittest.TestCase):
             str(ROOT),
             str(target),
             data={"project_name": "sample-app", **answers},
+            vcs_ref="HEAD",
             defaults=True,
             overwrite=True,
             unsafe=True,
@@ -32,7 +33,7 @@ class DevcontainerTemplateTests(unittest.TestCase):
         self.assertTrue((target / ".devcontainer/devcontainer.json").is_file())
         self.assertTrue((target / ".devcontainer/Dockerfile").is_file())
         config = (target / ".devcontainer/devcontainer.json").read_text()
-        self.assertIn('"postCreateCommand": "mise install --locked && mise exec -- uv sync"', config)
+        self.assertIn('"postCreateCommand": "mise trust && mise install --locked && mise exec -- uv sync"', config)
         dockerfile = (target / ".devcontainer/Dockerfile").read_text()
         self.assertIn("FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04", dockerfile)
 
