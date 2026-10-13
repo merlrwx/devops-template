@@ -11,23 +11,10 @@ only if you select container files or Compose.
 ## Generate a project
 
 Use the released template version `v1.1.0`, or another reviewed release.
-Keep the project answers in a temporary file outside the destination:
+Create a YAML file with your selected answers. For example:
 
 ```sh
-uvx --from copier==9.18.2 copier copy \
-  --vcs-ref v1.1.0 \
-  --data-file /tmp/answers.yml \
-  gh:merlrwx/devops-template my-project
-```
-
-Review the selected revision and `answers.yml` before generating. Avoid an
-unqualified `HEAD` or a moving branch when reproducibility matters. Copier
-records the source revision and answers in `.copier-answers.yml` in the
-generated project.
-
-Example `answers.yml`:
-
-```yaml
+cat > /tmp/answers.yml <<'YAML'
 project_name: inventory-service
 project_type: python-api
 include_containers: true
@@ -35,15 +22,33 @@ include_compose: true
 include_devcontainer: true
 include_github_actions: true
 api_port: 8000
-ui_port: 8501
+YAML
 ```
+
+Then generate the project:
+
+```sh
+uvx --from copier==9.18.2 copier copy \
+  --vcs-ref v1.1.0 \
+  --defaults \
+  --data-file /tmp/answers.yml \
+  gh:merlrwx/devops-template inventory-service
+```
+
+`--data-file` supplies the answers in the YAML file; `--defaults` uses the
+template defaults for answers you leave out, so Copier does not stop for
+interactive questions. Review the selected revision and `/tmp/answers.yml`
+before generating. Avoid an unqualified `HEAD` or a moving branch when
+reproducibility matters. Copier records the source revision and answers in
+`.copier-answers.yml` in the generated project.
 
 `project_name` must start with a lowercase letter and contain lowercase
 letters, digits, and single hyphens. `project_type` is `python-api`,
 `python-api-with-ui`, or `generic`. Container files and DevContainers are available only to the
 two Python project types. Compose requires containers. A DevContainer uses the
 project-pinned Mise toolchain for an isolated editor environment. Ports are asked only
-when containers are selected; `ui_port` applies to the API-with-UI type.
+when containers are selected; `ui_port` applies to the API-with-UI type and can
+be added to the answers file for that project type.
 
 ## Choose features and understand limits
 
