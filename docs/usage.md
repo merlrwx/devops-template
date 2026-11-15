@@ -10,7 +10,7 @@ only if you select container files or Compose.
 
 ## Generate a project
 
-Use the released template version `v1.1.0`, or another reviewed release.
+Use the released template version `v1.2.0`, or another reviewed release.
 Create a YAML file with your selected answers. For example:
 
 ```sh
@@ -29,7 +29,7 @@ Then generate the project:
 
 ```sh
 uvx --from copier==9.18.2 copier copy \
-  --vcs-ref v1.1.0 \
+  --vcs-ref v1.2.0 \
   --defaults \
   --data-file /tmp/answers.yml \
   gh:merlrwx/devops-template inventory-service
@@ -75,12 +75,13 @@ For Python project types, enter the generated directory and run:
 
 ```sh
 mise install --locked
-mise run lint
-mise run test
+mise run check
 ```
 
-For `generic`, there are no language-specific test or lint tasks in the current
-template. Review the generated files and use the checks appropriate to the
+`check` runs lint, formatting, tests and `scripts/check-suppressions`, which
+rejects lint, type, scanner and test suppressions unless a reviewer allows them
+in `.suppressions-allow`. For `generic`, `check` runs only the suppression guard;
+there are no language-specific test or lint tasks in the current template. Review the generated files and use the checks appropriate to the
 project's language. If containers are included, Docker is required to build or
 run them; Compose is available only when selected. For Kubernetes manifests,
 check the rendered resources with `kubectl kustomize kubernetes/base`. Make sure

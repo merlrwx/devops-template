@@ -1,6 +1,6 @@
 # Feature selection and delivery
 
-Pin new projects to `v1.1.0`. Every `include_*` feature remains opt-in; generation with defaults creates a small API. A DevContainer is generated only with `include_devcontainer: true`. The template repository's own `.devcontainer` is independent of that switch.
+Pin new projects to `v1.2.0`. Every `include_*` feature remains opt-in except `include_pre_commit`, which defaults to on for Python project types so Ruff, the suppression guard and Conventional Commit validation run before each commit; generation with defaults creates a small API. A DevContainer is generated only with `include_devcontainer: true`. The template repository's own `.devcontainer` is independent of that switch.
 
 ## Inputs and dependencies
 
@@ -59,7 +59,7 @@ include_gitops_promotion: true
 gitops_repository: example/my-app-gitops
 ```
 
-Generate with `copier copy --vcs-ref v1.1.0 --defaults --data-file /tmp/answers.yml gh:merlrwx/devops-template my-app`. Inspect the output, initialize Git, run `mise install --locked`, then `mise run setup`, `mise run lint`, `mise run format-check`, and `mise run test`. Commit the generated `uv.lock`; neither generation nor the template's generic starter runs dependency resolution or installs hooks. CI resolves a lock only when missing so initial scaffolds work; commit it for repeatable dependencies. The DevContainer setup installs dependencies but hooks are installed explicitly via `mise run setup` after Git initialization.
+Generate with `copier copy --vcs-ref v1.2.0 --defaults --data-file /tmp/answers.yml gh:merlrwx/devops-template my-app`. Inspect the output, initialize Git, run `mise install --locked`, then `mise run setup` and `mise run check` (lint, formatting, tests and the suppression guard). Commit the generated `uv.lock`; neither generation nor the template's generic starter runs dependency resolution or installs hooks. CI resolves a lock only when missing so initial scaffolds work; commit it for repeatable dependencies. The DevContainer setup installs dependencies but hooks are installed explicitly via `mise run setup` after Git initialization.
 
 Coverage measures application packages and UI helper functions. It omits the Streamlit `ui.py` entry script and API launcher; Kubernetes E2E checks service health and API persistence, not browser interactions. Add application-specific tests as the project grows. Frontend/backend packages have separate dependency declarations and release versions, with one shared uv workspace lock.
 
@@ -95,4 +95,4 @@ Persistence supplies a single-replica API with a Recreate strategy and 1Gi ReadW
 
 Version 1.0.0 wrote incomplete `.copier-answers.yml` metadata. Recover that version's source, revision and original selected options from your generation command/history before an update; do not assume omitted options were false. Generate into a temporary directory and selectively adopt changes when the metadata cannot be recovered reliably. Version 1.1.0 preserves all selections and the template revision.
 
-For projects with complete answers, commit current work, create an update branch, run `copier update --vcs-ref v1.1.0 --defaults`, inspect conflicts and run the selected validation. Keep user-owned code and credentials. Changing package layout is a migration, not an automatic update default.
+For projects with complete answers, commit current work, create an update branch, run `copier update --vcs-ref v1.2.0 --defaults`, inspect conflicts and run the selected validation. Keep user-owned code and credentials. Changing package layout is a migration, not an automatic update default.

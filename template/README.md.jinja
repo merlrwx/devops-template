@@ -48,7 +48,8 @@ resources.
 ## Quality and selected modules
 
 Initialize Git, run `mise install --locked` and `mise run setup`, and commit the resolved `uv.lock`.
-Run `mise run lint`, `mise run format-check` and `mise run test`.
+Run `mise run check` for lint, formatting, tests and the suppression guard, or the individual `lint`, `format-check`, `test` and `suppressions` tasks.
+`scripts/check-suppressions` rejects lint, type, scanner and test suppressions; a reviewer approves unavoidable exceptions in `.suppressions-allow`.
 {% if include_coverage %}
 Tests enforce {{ coverage_threshold }}% coverage and produce XML/HTML reports. UI launch code is excluded; add browser tests for UI interactions.
 {% endif %}
@@ -75,4 +76,4 @@ Install Docker, kubectl and k3d 5.9.0. Use `mise run k8s-setup-local`, `k8s-sync
 {% endif %}
 
 {% endif %}
-Full module documentation: https://github.com/merlrwx/devops-template/blob/v1.1.0/docs/features.md
+Full module documentation: https://github.com/merlrwx/devops-template/blob/v1.2.0/docs/features.md
