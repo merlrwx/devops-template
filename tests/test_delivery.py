@@ -119,12 +119,15 @@ class DeliveryTests(unittest.TestCase):
     def test_minimal_and_generic_exclude_optional_modules(self):
         for typ in ("python-api", "generic"):
             dest = self.render(project_type=typ)
+            # Commit hooks are the one default-on module, for Python projects only.
+            self.assertEqual(
+                (dest / ".pre-commit-config.yaml").exists(), typ == "python-api"
+            )
             for path in (
                 "services",
                 ".devcontainer",
                 "gitops",
                 "scripts/cluster.py",
-                ".pre-commit-config.yaml",
                 ".github/workflows/publish.yml",
                 ".github/workflows/release.yml",
                 ".github/workflows/promote.yml",
@@ -214,6 +217,7 @@ class DeliveryTests(unittest.TestCase):
                 self.command(dest, "uv", "sync")
                 self.command(dest, "uv", "run", "ruff", "check", ".")
                 self.command(dest, "uv", "run", "ruff", "format", "--check", ".")
+                self.command(dest, "sh", "scripts/check-suppressions")
                 args = ["uv", "run", "pytest"]
                 if data.get("include_coverage"):
                     args += ["--cov", "--cov-report=xml"]

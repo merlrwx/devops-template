@@ -10,3 +10,10 @@ repos:
     hooks:
       - id: commitizen
         stages: [commit-msg]
+  - repo: local
+    hooks:
+      - id: check-suppressions
+        name: Reject lint, type and test suppressions
+        entry: sh scripts/check-suppressions
+        language: system
+        pass_filenames: false

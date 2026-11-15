@@ -1,0 +1,7 @@
+# Reviewed exceptions for scripts/check-suppressions. Each line is an extended
+# regular expression matched against "path:line:text". Keep a reason above each.
+
+# The API binds every interface so containers and Compose can reach it.
+main\.py:[0-9]+: +host="0\.0\.0\.0",  # nosec B104$
+# The UI health probe only calls the configured API URL over http(s).
+ui\.py:[0-9]+: .*urlopen\(health_url\(api_url\), timeout=2\) as response:  # nosec B310$

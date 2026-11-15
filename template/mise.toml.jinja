@@ -6,12 +6,15 @@ format-check = "uv run ruff format --check ."
 format = "uv run ruff format ."
 setup = "uv sync{% if include_pre_commit %} && uv run pre-commit install && uv run pre-commit install --hook-type commit-msg{% endif %}"
 {% if include_pre_commit %}hooks = "uv run pre-commit run --all-files"
-{% endif %}
+{% endif %}suppressions = "sh scripts/check-suppressions"
+check = { description = "Run lint, formatting, tests and the suppression guard", depends = ["lint", "format-check", "test", "suppressions"] }
 [tools]
 python = "3.14.8"
 uv = "0.12.22"
 {% else %}
-check = "git status --short"
+suppressions = "sh scripts/check-suppressions"
+# Add language-specific lint, type and test tasks to depends when choosing a stack.
+check = { description = "Run the repository checks", depends = ["suppressions"] }
 {% endif %}
 {% if include_k3d %}
 [tasks.k8s-setup-local]

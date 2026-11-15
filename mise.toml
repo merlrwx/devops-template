@@ -5,3 +5,7 @@ uv = "0.12.22"
 [tasks.verify]
 description = "Run the Copier template and generated-project checks"
 run = "./scripts/verify"
+
+[tasks.check]
+description = "Run the repository checks (the agent Stop-hook gate)"
+depends = ["verify"]

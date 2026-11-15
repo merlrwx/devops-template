@@ -180,8 +180,8 @@ coverage_threshold:
 
 include_pre_commit:
   type: bool
-  help: Include Ruff formatting/lint hooks and Conventional Commit validation
-  default: false
+  help: Include Ruff formatting/lint hooks, the suppression guard and Conventional Commit validation
+  default: "{{ project_type != 'generic' }}"
   validator: >-
     {% if include_pre_commit and project_type == 'generic' %}
     Pre-commit tooling requires a Python project.

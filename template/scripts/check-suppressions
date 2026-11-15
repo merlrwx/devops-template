@@ -1,0 +1,33 @@
+#!/bin/sh
+# Fail when code silences a linter, type checker, scanner or test instead of
+# fixing the root cause. A human may allow an unavoidable case by adding an
+# extended regular expression, with a reason, to .suppressions-allow; each
+# finding is matched as "path:line:text".
+set -eu
+
+pattern='noqa|(type|pyright|mypy): *ignore|nosec|pragma: *no *cover|pytest\.(mark\.)?(skip|xfail)|unittest\.skip|skipTest\(|eslint-disable|@ts-(ignore|nocheck|expect-error)|biome-ignore|\b(it|test|describe)\.(skip|only)\(|shellcheck +disable|NOSONAR|rubocop:disable'
+allow=.suppressions-allow
+
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    found=$(git grep -nIE "$pattern" -- . ':!*.md' ":!$allow" ':!scripts/check-suppressions' || true)
+else
+    found=$(grep -rnIE --exclude='*.md' --exclude="$allow" --exclude=check-suppressions \
+        --exclude-dir=.git --exclude-dir=.venv --exclude-dir=node_modules "$pattern" . |
+        sed 's|^\./||' || true)
+fi
+
+if [ -n "$found" ] && [ -f "$allow" ]; then
+    rules=$(grep -vE '^[[:space:]]*(#|$)' "$allow" || true)
+    if [ -n "$rules" ]; then
+        found=$(printf '%s\n' "$found" | grep -vE "$rules" || true)
+    fi
+fi
+
+if [ -n "$found" ]; then
+    printf '%s\n' "$found" >&2
+    printf '%s\n' \
+        'Suppression found. Fix the root cause of the lint, type, scan or test failure' \
+        'instead of silencing it. Do not add an entry to .suppressions-allow yourself;' \
+        'a human approves unavoidable exceptions there with a reason.' >&2
+    exit 1
+fi
